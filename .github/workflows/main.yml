@@ -1,8 +1,9 @@
 name: "Daily Fudan"
 
 on:
-  schedule:
-    - cron: "17 22,5 * * *"  # scheduled at 06:17 & 13:17 (UTC+8) everyday
+  schedule: # scheduled at (UTC+8) everyday
+    - cron: "23 20 * * *"
+    - cron: "24 6 * * *"
   workflow_dispatch:
 
 env:
@@ -10,6 +11,7 @@ env:
   ALLOW_MERGE: 'true'
   RUN_ENV: 'prod'
   TZ: 'Asia/Shanghai'
+  FUCK_GH_PAT: ${{ secrets.GH_PAT }}
 
 jobs:
   build:
@@ -17,7 +19,16 @@ jobs:
     # if: github.ref == 'refs/heads/master'
 
     steps:
-      - name: Checkout master
+      - name: Checkout master with GH_PAT
+        if: ${{ env.FUCK_GH_PAT }}
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+          ref: master
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Checkout master without GH_PAT
+        if: ${{ !env.FUCK_GH_PAT }}
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -30,16 +41,21 @@ jobs:
           git config --global user.email github-actions@github.com
           git config --global pull.rebase true
           git remote add upstream https://github.com/Limourli-liu/daily_fudan.git
+          git config --global merge.ours.driver true
           git pull upstream master --allow-unrelated-histories
           git push origin master --force
       - name: Set up python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Random sleep
         if: github.event_name == 'schedule'
         run: sleep $(shuf -i 10-300 -n 1)
+
+      - name: Random_schedule
+        if: ${{ env.FUCK_GH_PAT }}
+        run: python3 ./random_schedule.py '${{ secrets.SCHEDULE }}'
 
       - name: Run sign
         run: |
