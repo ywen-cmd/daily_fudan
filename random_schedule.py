@@ -15,7 +15,7 @@ on:
 
 env:
   # auto merge from y1ndan/genshin-impact-helper, default: false
-  ALLOW_MERGE: 'true'
+  ALLOW_MERGE: 'false'
   RUN_ENV: 'prod'
   TZ: 'Asia/Shanghai'
   FUCK_GH_PAT: ${{ secrets.GH_PAT }}
@@ -180,6 +180,43 @@ def get_arg():
         print('wrong SCHEDULE. use default SCHEDULE')
     print(am_inf, am_sup, pm_inf, pm_sup, t_inf, t_sup)
 
+def git_setIdentity():
+    lines = [
+            'git config --global user.name  "github-actions"',
+            'git config --global user.email "github-actions@github.com"'
+            ]
+    for line in lines:
+        ret, val = subprocess.getstatusoutput(line)
+        if ret:
+            print(ret, val)
+            return ret
+
+def auto_merge():
+    lines = [
+            "git config --global pull.rebase true",
+            "git config --global merge.ours.driver true",
+            "git remote add upstream https://github.com/Limour-dev/daily_fudan.git",
+            "git fetch upstream",
+            "git checkout master",
+            "git checkout upstream/master auto_merge.py"
+        ]
+    for line in lines:
+        ret, val = subprocess.getstatusoutput(line)
+        if ret:
+            print(ret, val)
+            return ret
+    ret, val = subprocess.getstatusoutput("python3 ./auto_merge.py")
+    print(ret, val)
+    if 'success' not in val:
+        ret, val = subprocess.getstatusoutput("python ./auto_merge.py")
+        print(ret, val)
+
+try:
+    if git_setIdentity():
+        sys_exit(0)
+except:
+    print(traceback.format_exc())
+
 try:
     get_arg()
 except:
@@ -192,3 +229,10 @@ if is_pm():
         pass
     except:
         print(traceback.format_exc())
+
+
+try:
+    if auto_merge():
+        sys_exit(0)
+except:
+    print(traceback.format_exc())
