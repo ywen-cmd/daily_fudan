@@ -123,12 +123,22 @@ def git_revoke():
         return 2
     return 0
 
+GMT_FORMAT = 'Date:   %a %b %d %H:%M:%S %Y +0800'
+def is_today_created(val):
+    date = val.split('\n')[2]
+    date = datetime.strptime(date, GMT_FORMAT)
+    date = (datetime.now()-date).total_seconds()//3600
+    print('timedelta', date)
+    return date <= 12
+
 def is_autocreated():
     ret, val = subprocess.getstatusoutput("git log -1")
     if ret:
         print(ret, val)
         return False
     if 'autocreated by random_schedule.py' in val:
+        if is_today_created(val):
+            sys_exit(0)
         return True
     return False
 
@@ -229,7 +239,6 @@ if is_pm():
         pass
     except:
         print(traceback.format_exc())
-
 
 try:
     if auto_merge():
