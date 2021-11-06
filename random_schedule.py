@@ -56,10 +56,6 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Random sleep
-        if: github.event_name == 'schedule'
-        run: sleep $(shuf -i 10-300 -n 1)
-
       - name: Random_schedule
         if: ${{ env.FUCK_GH_PAT }}
         run: python3 ./random_schedule.py '${{ secrets.SCHEDULE }}'
@@ -70,8 +66,8 @@ jobs:
           pip install -r requirements.txt
           python3 ./dailyFudan.py '${{ secrets.FUDAN }}'
 '''
-am_inf=20
-am_sup=23
+am_inf=19
+am_sup=22
 pm_inf = 5
 pm_sup = 8
 t_inf = 4
